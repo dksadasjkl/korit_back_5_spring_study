@@ -1,28 +1,33 @@
 package com.study.mvc.controller;
 
-import com.study.mvc.dto.StudentReqDto;
+import com.study.mvc.entity.Student;
+import com.study.mvc.service.StudentService;
+import com.study.mvc.service.StudentServiceImpl;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
-/*
-controller 명 : StudentController
+import java.util.List;
 
-메소드명: getStudentInfo()
-요청 메소드 : Get
-요청 URL : /student
-요청 Params : name, age, phone, address
-응답데이터: JSON(name, age, phone, address)
- */
-
-@RestController // 모든 메소드 ResponseBody 포함
+@RestController
 public class StudyRestController {
 
-    @GetMapping("/hello/test")
-    // 키값의 값을 n에 넣어라
-    // int 자동 파싱
-    public String hello(StudentReqDto helloDto) {
-        System.out.println(helloDto);
-        return "Hello";
+    @Autowired
+    @Qualifier("studentServiceImpl")
+    private StudentService studentService;
 
+    @GetMapping("/ex/students")
+    public ResponseEntity<?> Students() {
+        return ResponseEntity.ok(studentService.getStudentList());
     }
+
+    @GetMapping("/ex/students/{index}")
+    public ResponseEntity<?> student(@PathVariable int index) {
+        return ResponseEntity.ok(studentService.getStudentList(index));
+    }
+
 }

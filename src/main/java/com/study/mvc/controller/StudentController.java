@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -20,33 +22,43 @@ public class StudentController {
 
     @PostMapping("/student")
     // RequestBody 요청 때 JSON 데이터로
-    public ResponseEntity<?> addStudent(@CookieValue(required = false) String students, @RequestBody Student student) throws JsonProcessingException {
+    // required = false 값이 null 이 아니여도 됨.
+    public ResponseEntity<?> addStudent(@CookieValue(required = false) String students, @RequestBody Student student) throws JsonProcessingException, UnsupportedEncodingException {
+        ObjectMapper objectMapper = new ObjectMapper(); // GSON 과 동일
         List<Student> studentList = new ArrayList<>();
         int lastId = 0;
 
+        System.out.println(students);
+
         if(students != null) {
-            if (!students.isBlank()) {
-                ObjectMapper studentsCookie = new ObjectMapper();
-                studentList = studentsCookie.readValue(students, List.class);
+            if(!students.isBlank()) {
+                for(Object object : objectMapper.readValue(students, List.class)) { // 배열 변환 -> 오브젝트객체로 들어감
+                    Map<String, Object> studentMap = (Map<String, Object>) object; // Map 다운캐스팅
+                    studentList.add(objectMapper.convertValue(studentMap, Student.class)); // Student 객체 변환
+                }
                 lastId = studentList.get(studentList.size() - 1).getStudentId();
             }
         }
 
-        student.setStudentId(lastId + 1);
+        student.setStudentId(lastId + 1); //JSON(name) + id
         studentList.add(student);
-
-        ObjectMapper newStudentList = new ObjectMapper();
-        String newStudents = newStudentList.writeValueAsString(studentList);
-
-
+        System.out.println(studentList);
+        
+        String studentListJson = objectMapper.writeValueAsString(studentList); // toJson 과 동일
+        System.out.println(studentListJson);
+        
         ResponseCookie responseCookie = ResponseCookie
-                .from("test", "test") // 쿠키의 이름과 값 설정
-                .httpOnly(true) // HTTP 전용 설정
-                .secure(true) // 보안 전용 설정
-                .path("/") // 쿠키의 유효 경로 설정
-                .maxAge(60) // 쿠키의 만료 시간 설정 (60초)
+                .from("students", URLEncoder.encode(studentListJson, "UTF-8")) // 인코딩
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(60 * 5)
                 .build();
-        return ResponseEntity.created(null)
+
+        // (")문자 저장x
+
+        return ResponseEntity
+                .created(null)
                 .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
                 .body(student);
 
@@ -100,7 +112,7 @@ public class StudentController {
             return ResponseEntity.badRequest().body(Map.of("errorMessage", "존재하지 않는 10입니다."));
         }
 
-        findStudent =optionalStudent.get();
+        findStudent = optionalStudent.get();
 
 //        if(findStudent == null) {
 //            return ResponseEntity.badRequest().body(Map.of("errorMessege", "존재하지 않는 10입니다."));

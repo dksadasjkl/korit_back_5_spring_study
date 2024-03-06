@@ -37,7 +37,8 @@ public class StudyController {
         return "hello"; // 파일명 -> thymeleaf
     }
 
-    // * REST
+    // * REST -> 다른방법 매개변수로 httpResponse 으로도 응답가능
+    // 주소창에 입력하는 방식
     @GetMapping("/test") // Get 요청으로 매핑
     @ResponseBody // *** 데이터 응답  (view 응답 x) ***
     public Map<String, Object> testPage() {
