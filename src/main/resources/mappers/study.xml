@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- xml 만들기 , https://mybatis.org/mybatis-3/ko/getting-started.html 매핑된 구문 ->
+    인터페이스 경로
+-->
+<mapper namespace="com.study.mvc.repository.DBStudyRepository">
+    <!-- resultMap id="StudyResultMap" type="com.study.mvc.entity.Study"
+           StudyResultMap<Study> = (property) Study.id <= (column) DB.id
+           키값은 id, 나머지는 result
+    -->
+    <!-- /////////////////////////////[ MAP ]///////////////////////////// -->
+    <resultMap id="StudyResultMap" type="com.study.mvc.entity.Study">
+        <id property="id" column="id"/>
+        <result property="name" column="name" />
+        <result property="age" column="age" />
+        <result property="createDate" column="create_date" />
+    </resultMap>
+    <!-- /////////////////////////////[ SQL ]///////////////////////////// -->
+    <!-- xml - 자동 생성 컴포넌트 + 오버라이딩
+        id -> 메소드명
+        parameterType -> 매개변수
+        useGeneratedKeys -> 자동완성키값
+        keyProperty -> 키값세팅 - 해당명 -> 지금은 Study 에 id값
+        resultType -> 결과값
+    -->
+    <insert
+            id="save"
+            parameterType="com.study.mvc.entity.Study"
+            useGeneratedKeys="true"
+            keyProperty="id"
+    >
+        insert into study_tb
+        values (0, #{name}, #{age}, now())
+    </insert>
+    <select
+            id="findStudyById"
+            parameterType="Integer"
+            resultMap="StudyResultMap"
+    >
+        select
+            id,
+            name,
+            age,
+            create_date
+        from
+            study_tb
+        where
+            id = #{id}
+    </select>
+
+    <select id="findStudyByName"
+            parameterType="String"
+            resultMap="StudyResultMap"
+    >
+        select
+            id,
+            name,
+            age,
+            create_date
+        from
+            study_tb
+        where
+            name = #{name}
+    </select>
+
+    <select id="findAll"
+            resultMap="StudyResultMap"
+    >
+        select
+            id,
+            name,
+            age,
+            create_date
+        from
+            study_tb
+
+    </select>
+    <delete id="deleteById"
+            parameterType="Integer"
+    >
+        delete
+        from
+            study_tb
+        where
+            id = #{id}
+
+    </delete>
+
+    <update id="putById"
+            parameterType="com.study.mvc.entity.Study"
+    >
+        update
+            study_tb
+        set
+            name = #{name},
+            age = #{age}
+        where
+            id = #{id}
+
+    </update>
+
+    <update id="patchById"
+            parameterType="com.study.mvc.entity.Study"
+    >
+        update
+        study_tb
+        set
+            <if test="name != null and !name.equals('')">
+                name = #{name},
+            </if>
+            <if test="age != 0">
+                age = #{age},
+            </if>
+                create_date = create_date
+        where
+            id = #{id}
+    </update>
+</mapper>
